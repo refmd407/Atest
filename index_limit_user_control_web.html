@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Admin - Sistem Banding WA</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@400;500;600&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top, #0a0a1f, #050510);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+    }
+
+    .bg-dots { position: absolute; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+
+    .dot {
+      position: absolute;
+      background: rgba(0, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: float 10s linear infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+    }
+
+    .card {
+      position: relative;
+      z-index: 10;
+      width: 90%;
+      max-width: 500px;
+      background: rgba(20, 20, 40, 0.8);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 25px 30px;
+      text-align: center;
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+      overflow-y: auto;
+      max-height: 90vh;
+      transition: all 0.4s ease;
+    }
+
+    h1, h2 {
+      font-family: "Orbitron", sans-serif;
+      background: linear-gradient(90deg, #00e1ff, #b700ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 10px rgba(0,255,255,0.3);
+    }
+
+    h1 { font-size: 1.8rem; margin-bottom: 10px; }
+    h2 { font-size: 1.2rem; margin-top: 25px; margin-bottom: 10px; }
+
+    input, select {
+      width: 100%; padding: 12px; border-radius: 10px;
+      border: none; outline: none; background: rgba(255, 255, 255, 0.08);
+      color: #fff; font-size: 15px; text-align: center; transition: 0.3s ease;
+      margin-bottom: 10px;
+    }
+    input:focus, select:focus {
+      background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 12px #00e1ff;
+    }
+
+    button {
+      width: 100%; padding: 12px; margin-top: 10px;
+      border: none; border-radius: 10px;
+      background: linear-gradient(90deg, #00e1ff, #b700ff);
+      color: #fff; font-weight: 600; font-size: 15px;
+      cursor: pointer; transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(183, 0, 255, 0.5); }
+
+    .toggle-btn {
+      background: rgba(0, 255, 255, 0.2);
+      border: 1px solid rgba(0,255,255,0.3);
+      font-size: 14px;
+    }
+
+    .user-list {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+      text-align: left;
+      font-size: 14px;
+      color: #c8f7ff;
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: all 0.5s ease;
+    }
+    .user-list.show {
+      max-height: 300px;
+      opacity: 1;
+      padding: 15px;
+    }
+
+    .user-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .delete-btn {
+      background: #ff4c4c;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      transition: 0.2s;
+    }
+    .delete-btn:hover { background: #ff0000; }
+
+    .hasil-box {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+      text-align: left;
+      min-height: 80px;
+      font-size: 14px;
+      color: #c8f7ff;
+      border: 1px solid rgba(0, 255, 255, 0.15);
+    }
+
+    .success { color: #00ffc8; font-weight: 500; }
+    .error { color: #ff6b6b; font-weight: 500; }
+
+    .loader {
+      margin: 12px auto;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      border-top: 3px solid #00e1ff;
+      border-radius: 50%;
+      width: 28px; height: 28px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    footer { margin-top: 25px; font-size: 12px; color: #888; text-align: center; opacity: 0.7; }
+    #dashboardAdmin, #dashboardUser { display: none; }
+  </style>
+</head>
+<body>
+  <div class="bg-dots" id="bg"></div>
+
+  <!-- FORM LOGIN -->
+  <div class="card" id="loginCard">
+    <h1>🔒 LOGIN by @kyysukakamuk</h1>
+    <p>Masukkan username dan password</p>
+    <input id="username" type="text" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Masuk</button>
+    <div id="loginMsg" style="margin-top:10px;color:#ff8080;"></div>
+  </div>
+
+  <!-- DASHBOARD ADMIN -->
+  <div class="card" id="dashboardAdmin">
+    <h1>🛠️ DASHBOARD ADMIN</h1>
+
+    <h2>👥 CREATE USER</h2>
+    <input id="newUser" placeholder="Username baru">
+    <input id="newPass" type="password" placeholder="Password baru">
+    <select id="newRole">
+      <option value="user">User</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button onclick="createUser()">Tambah User</button>
+
+    <button class="toggle-btn" onclick="toggleUserList()">📋 Lihat Semua User & Admin</button>
+    <div class="user-list" id="userList"></div>
+
+    <h2>📱 Cek Nomor WhatsApp</h2>
+    <input id="nomorAdmin" type="text" placeholder="Masukkan nomor WhatsApp..." />
+    <button onclick="cekNomorAdmin()">Cek Sekarang</button>
+    <div class="hasil-box" id="hasilAdmin">Hasil akan muncul di sini...</div>
+
+    <button style="margin-top:20px;background:#ff4444;" onclick="logout()">Keluar</button>
+    <footer>© 2025 Web Private • Admin @kyysukakamuk</footer>
+  </div>
+
+  <!-- DASHBOARD USER -->
+  <div class="card" id="dashboardUser">
+    <h1>⚡ BANDING WA USER ⚡</h1>
+    <p>Masukkan nomor WhatsApp kamu (contoh: 6281234567890)</p>
+    <input id="nomor" type="text" placeholder="Masukkan nomor merah..." />
+    <button onclick="cekNomor()">Cek Sekarang</button>
+    <div class="hasil-box" id="hasil">Hasil akan muncul di sini...</div>
+    <button style="margin-top:20px;background:#ff4444;" onclick="logout()">Keluar</button>
+    <footer>© 2025 Web Private • User Panel</footer>
+  </div>
+
+  <script>
+    const bg = document.getElementById("bg");
+    for (let i = 0; i < 25; i++) {
+      const dot = document.createElement("div");
+      const size = Math.random() * 6 + 2;
+      dot.className = "dot";
+      dot.style.width = `${size}px`;
+      dot.style.height = `${size}px`;
+      dot.style.left = `${Math.random() * 100}%`;
+      dot.style.top = `${Math.random() * 100}%`;
+      dot.style.animationDuration = `${6 + Math.random() * 6}s`;
+      bg.appendChild(dot);
+    }
+
+    if (!localStorage.getItem("users")) {
+      const defaultUsers = [
+        { username: "adm", password: "1", role: "admin" },
+        { username: "user", password: "user123", role: "user" },
+      ];
+      localStorage.setItem("users", JSON.stringify(defaultUsers));
+    }
+
+    
+// === LOGIN DENGAN ANIMASI TRANSISI ===
+function login() {
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const msg = document.getElementById("loginMsg");
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const found = users.find(u => u.username === user && u.password === pass);
+
+  if (found) {
+    msg.style.color = "#00ffc8";
+    msg.textContent = "Login berhasil!";
+    localStorage.setItem("loggedUser", JSON.stringify(found));
+
+    // animasi halus sebelum masuk dashboard
+    setTimeout(() => {
+      document.getElementById("loginCard").style.opacity = "0";
+      document.getElementById("loginCard").style.transition = "opacity 0.8s ease";
+      setTimeout(() => {
+        document.getElementById("loginCard").style.display = "none";
+        if (found.role === "admin") {
+          document.getElementById("dashboardAdmin").style.display = "block";
+          loadUserList();
+        } else {
+          document.getElementById("dashboardUser").style.display = "block";
+        }
+      }, 800);
+    }, 300);
+  } else {
+    msg.style.color = "#ff6b6b";
+    msg.textContent = "Username atau password salah!";
+  }
+}
+
+
+    function logout() {
+      document.getElementById("dashboardAdmin").style.display = "none";
+      document.getElementById("dashboardUser").style.display = "none";
+      document.getElementById("loginCard").style.display = "block";
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
+      localStorage.removeItem("loggedUser");
+    }
+
+    function createUser() {
+      const username = document.getElementById("newUser").value.trim();
+      const password = document.getElementById("newPass").value.trim();
+      const role = document.getElementById("newRole").value;
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+
+      if (!username || !password) return alert("Isi semua field!");
+      if (users.find(u => u.username === username)) return alert("Username sudah ada!");
+
+      users.push({ username, password, role });
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("User berhasil ditambahkan!");
+      document.getElementById("newUser").value = "";
+      document.getElementById("newPass").value = "";
+      loadUserList();
+    }
+
+    function loadUserList() {
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const list = document.getElementById("userList");
+      list.innerHTML = "";
+      users.forEach((u, index) => {
+        const row = document.createElement("div");
+        row.className = "user-row";
+        row.innerHTML = `<div>👤 <b>${u.username}</b> — ${u.role}</div>
+          <button class="delete-btn" onclick="deleteUser(${index})">🗑️ Hapus</button>`;
+        list.appendChild(row);
+      });
+    }
+
+    function toggleUserList() {
+      const list = document.getElementById("userList");
+      list.classList.toggle("show");
+      if (list.classList.contains("show")) loadUserList();
+    }
+
+    function deleteUser(index) {
+      let users = JSON.parse(localStorage.getItem("users")) || [];
+      const user = users[index];
+      if (user.username === "adm") return alert("User admin utama tidak bisa dihapus!");
+      if (confirm(`Yakin ingin hapus user '${user.username}'?`)) {
+        users.splice(index, 1);
+        localStorage.setItem("users", JSON.stringify(users));
+        loadUserList();
+      }
+    }
+
+    async function cekNomorAdmin() {
+      const nomor = document.getElementById("nomorAdmin").value.trim();
+      const hasil = document.getElementById("hasilAdmin");
+      if (!nomor) return hasil.innerHTML = `<div class="error">⚠️ Masukkan nomor terlebih dahulu.</div>`;
+      hasil.innerHTML = `<div class="loader"></div><div style="text-align:center;">Memeriksa nomor...</div>`;
+      try {
+        const res = await fetch(`https://web-privatev1.vercel.app/api/banding?nomor=${encodeURIComponent(nomor)}&apikey=totoy`);
+        const data = await res.json();
+        if (data.success) {
+          hasil.innerHTML = `<div class="success">✅ <b>Nomor Valid</b><br><br>
+              📱 Nomor: ${data.nomor}<br>👤 Akun: ${data.usedAccount}<br>
+              💬 Pesan: ${data.message}<br>🆔 ID: ${data.messageId}</div>`;
+        } else {
+          hasil.innerHTML = `<div class="error">❌ ${data.error || "Gagal memeriksa nomor."}</div>`;
+        }
+      } catch {
+        hasil.innerHTML = `<div class="error">❌ Koneksi gagal. Pastikan API aktif.</div>`;
+      }
+    }
+  
+
+// === FIX UNTUK ERROR LOGIN ===
+if (typeof loadUserList !== "function") {
+  function loadUserList() {
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+    const list = document.getElementById("userList");
+    if (list) list.innerHTML = users.map(u => `<div>👤 ${u.username} — ${u.role}</div>`).join('');
+  }
+}
+
+// === FITUR BATAS CEK NOMOR PER USER (ADMIN MENGATUR) ===
+
+// set default limit global jika belum ada
+if (!localStorage.getItem("cekLimit")) {
+  localStorage.setItem("cekLimit", "5");
+}
+
+// Tambahkan UI pengaturan limit global di dashboard admin
+window.addEventListener("DOMContentLoaded", () => {
+  const adminPanel = document.getElementById("dashboardAdmin");
+  if (adminPanel) {
+    const limitBox = document.createElement("div");
+    limitBox.innerHTML = `
+      <h2>🧩 PENGATURAN LIMIT GLOBAL</h2>
+      <input id="limitInput" type="number" min="1" placeholder="Masukkan limit per hari">
+      <button onclick="simpanLimitGlobal()">Simpan Limit Global</button>
+    `;
+    adminPanel.insertBefore(limitBox, adminPanel.children[adminPanel.children.length - 2]);
+    document.getElementById("limitInput").value = localStorage.getItem("cekLimit") || "5";
+  }
+});
+
+// Simpan limit global
+function simpanLimitGlobal() {
+  const newLimit = parseInt(document.getElementById("limitInput").value);
+  if (isNaN(newLimit) || newLimit < 1) return alert("Limit harus angka minimal 1!");
+  localStorage.setItem("cekLimit", newLimit.toString());
+  alert(`Limit global diset ke ${newLimit}x per hari ✅`);
+  loadUserList();
+}
+
+// Ambil limit user
+function getUserLimit(username) {
+  return parseInt(localStorage.getItem(`userLimit_${username}`)) || parseInt(localStorage.getItem("cekLimit")) || 5;
+}
+
+// Ambil sisa limit hari ini
+function getUserSisa(username) {
+  const today = new Date().toISOString().split("T")[0];
+  const key = `limit_${username}_${today}`;
+  const count = parseInt(localStorage.getItem(key)) || 0;
+  const limit = getUserLimit(username);
+  return Math.max(limit - count, 0);
+}
+
+// Ubah limit user
+function ubahLimitUser(username) {
+  const current = getUserLimit(username);
+  const newLimit = prompt(`Masukkan limit baru untuk ${username}:`, current);
+  if (!newLimit) return;
+  const num = parseInt(newLimit);
+  if (isNaN(num) || num < 1) return alert("Limit harus angka positif!");
+  localStorage.setItem(`userLimit_${username}`, num);
+  alert(`Limit ${username} diubah ke ${num}x per hari ✅`);
+  loadUserList();
+}
+
+// Override loadUserList untuk menampilkan limit dan sisa
+function loadUserList() {
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const list = document.getElementById("userList");
+  list.innerHTML = "";
+  users.forEach((u, index) => {
+    const row = document.createElement("div");
+    row.className = "user-row";
+
+    if (u.role === "admin") {
+      row.innerHTML = `<div>👤 <b>${u.username}</b> — ${u.role} | Limit: Tidak dibatasi</div>
+        <button class="delete-btn" onclick="deleteUser(${index})">🗑️ Hapus</button>`;
+    } else {
+      const limit = getUserLimit(u.username);
+      const sisa = getUserSisa(u.username);
+      row.innerHTML = `<div>👤 <b>${u.username}</b> — ${u.role} | Limit: ${limit}x/hari | Sisa: ${sisa}x</div>
+        <div>
+          <button class="delete-btn" onclick="ubahLimitUser('${u.username}')">✏️ Ubah</button>
+          <button class="delete-btn" onclick="deleteUser(${index})">🗑️ Hapus</button>
+        </div>`;
+    }
+    list.appendChild(row);
+  });
+}
+
+// Fungsi cek nomor untuk user (menggunakan limit pribadi)
+async function cekNomor() {
+  const hasil = document.getElementById("hasil");
+  const nomor = document.getElementById("nomor").value.trim();
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  if (!user) return alert("Silakan login dulu!");
+
+  const today = new Date().toISOString().split("T")[0];
+  const key = `limit_${user.username}_${today}`;
+  let count = parseInt(localStorage.getItem(key)) || 0;
+  const limit = getUserLimit(user.username);
+
+  if (count >= limit) {
+    hasil.innerHTML = `<div class="error">🚫 Kamu sudah mencapai batas ${limit}x cek hari ini. Coba lagi besok.</div>`;
+    return;
+  }
+
+  if (!nomor) {
+    hasil.innerHTML = `<div class="error">⚠️ Masukkan nomor terlebih dahulu.</div>`;
+    return;
+  }
+
+  hasil.innerHTML = `<div class="loader"></div><div style="text-align:center;">Memeriksa nomor...</div>`;
+
+  try {
+    const res = await fetch(\`https://web-privatev1.vercel.app/api/banding?nomor=\${encodeURIComponent(nomor)}&apikey=totoy\`);
+    const data = await res.json();
+    if (data.success) {
+      hasil.innerHTML = \`<div class="success">✅ <b>Nomor Valid</b><br><br>
+        📱 Nomor: \${data.nomor}<br>👤 Akun: \${data.usedAccount}<br>
+        💬 Pesan: \${data.message}<br>🆔 ID: \${data.messageId}</div>\`;
+    } else {
+      hasil.innerHTML = \`<div class="error">❌ \${data.error || "Gagal memeriksa nomor."}</div>\`;
+    }
+
+    count++;
+    localStorage.setItem(key, count);
+  } catch {
+    hasil.innerHTML = `<div class="error">❌ Koneksi gagal. Pastikan API aktif.</div>`;
+  }
+}
+
+// Reset otomatis limit jika hari baru
+(function resetDailyLimit() {
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const today = new Date().toISOString().split("T")[0];
+  users.forEach(u => {
+    for (let key in localStorage) {
+      if (key.startsWith(`limit_${u.username}_`) && !key.endsWith(today)) {
+        localStorage.removeItem(key);
+      }
+    }
+  });
+})();
+
+</script>
+</body>
+</html>
